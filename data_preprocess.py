@@ -20,7 +20,7 @@ def main():
         mask_dir = os.path.join(root_dir, id, 'masks')
 
         img_orig = cv2.imread(img_path)
-        orig_size = str(img_orig.shape[0]) + ' ' + str(img_orig.shape[1])
+        orig_size = str(img_orig.shape[0]) + ',' + str(img_orig.shape[1]) + ',0,0'  # added 0's for easier csv reading
         img_resized = cv2.resize(img_orig, (256, 256))
 
         cv2.imwrite(os.path.join(new_dir, id + '.png'), img_resized)
@@ -36,7 +36,7 @@ def main():
                 rect = cv2.boundingRect(points)
 
                 s = [str(x) for x in rect]
-                s_txt = '\n' + s[0] + ' ' + s[1] + ' ' + s[2] + ' ' + s[3]
+                s_txt = '\n' + s[0] + ',' + s[1] + ',' + s[2] + ',' + s[3]
 
                 f.write(s_txt)
 

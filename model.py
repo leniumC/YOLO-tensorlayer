@@ -70,7 +70,7 @@ def get_model(X, is_train=True, reuse=False):
 
         network = dense(network, 0, 1024, flatten=True, act=tl.activation.leaky_relu)
         network = dense(network, 1, 4096, flatten=False, act=tl.activation.leaky_relu)
-        network = dense(network, 2, 32 * 32 * 5, flatten=False, act=tf.sigmoid)
+        network = dense(network, 2, 32 * 32 * 5, flatten=False, act=tf.identity)
 
         network = ReshapeLayer(
             network,

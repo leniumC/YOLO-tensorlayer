@@ -6,21 +6,28 @@ import os
 
 
 def main():
-    lr = 0.00003
-    n_epochs = 100
+    lr = 1e-6
+    n_epochs = 200
     n_batches = 200
 
     X = tf.placeholder(tf.float32, [None, 256, 256, 3])
     y_ = tf.placeholder(tf.float32, [None, 32, 32, 5])
 
     net_train = get_model(X, is_train=True, reuse=False)
-    net_val = get_model(X, is_train=False, reuse=True)
+    # net_val = get_model(X, is_train=False, reuse=True)
 
     y_train = net_train.outputs
-    y_val = net_val.outputs
+    # y_val = net_val.outputs
+    net_train.print_layers()
+    net_train.print_params(False)
 
     loss_train, coord_loss, len_loss, is_obj_loss, no_obj_loss = loss_function(y_, y_train)
-    loss_val = loss_function(y_, y_val)
+    # loss_val = loss_function(y_, y_val)
+
+    # optimizer = tf.train.AdamOptimizer(learning_rate=lr)
+    # gvs = optimizer.compute_gradients(loss_train)
+    # capped_gvs = [(tf.clip_by_value(grad, -0.5, 0.5), var) for grad, var in gvs]
+    # op = optimizer.apply_gradients(capped_gvs)
 
     op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss_train)
 

@@ -25,16 +25,18 @@ def show_bbox(img, label):
         for j in range(len(label[0])):
             item = label[i][j]
             item[0] = item[0]
-            if item[0] < 0.05:
+            if item[0] < 0.2:
                 continue
             item *= 256
-            cv2.rectangle(img, (item[1], item[2]), (item[1] + item[3], item[2] + item[4]), (255, 255, 0), 1)
+            cv2.rectangle(img, (int(item[1] - item[3] / 2), int(item[2] - item[4] / 2)),
+                          (int(item[1] + item[3] / 2), int(item[2] + item[4] / 2)), (255, 255, 0), 1)
             cv2.circle(img, (int((i + 0.5) * 256 / 32), int((j + 0.5) * 256 / 32)), 2, (0, 0, 255), 2)
     cv2.imshow('img', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 
+# TODO: DEBUG LOSS FUNCTION
 def loss_function(y_, y_pred):
     # y_: [object/no object, x, y, w, h]
     # y_pred: [confidence, x, y, w, h]
@@ -43,8 +45,10 @@ def loss_function(y_, y_pred):
     w_2 = 1
     w_3 = 0.5
 
-    tmp_1 = tf.stack([y_[:, :, :, 1], y_[:, :, :, 2], y_[:, :, :, 1] + y_[:, :, :, 3], y_[:, :, :, 2] + y_[:, :, :, 4]], axis=-1)
-    tmp_2 = tf.stack([y_pred[:, :, :, 1], y_pred[:, :, :, 2], y_pred[:, :, :, 1] + y_pred[:, :, :, 3], y_pred[:, :, :, 2] + y_pred[:, :, :, 4]], axis=-1)
+    tmp_1 = tf.stack([y_[:, :, :, 1] - y_[:, :, :, 3] / 2, y_[:, :, :, 2] - y_[:, :, :, 4] / 2,
+                      y_[:, :, :, 1] + y_[:, :, :, 3] / 2, y_[:, :, :, 2] + y_[:, :, :, 4] / 2], axis=-1)
+    tmp_2 = tf.stack([y_pred[:, :, :, 1] - y_pred[:, :, :, 3] / 2, y_pred[:, :, :, 2] - y_pred[:, :, :, 4] / 2,
+                      y_pred[:, :, :, 1] + y_pred[:, :, :, 3] / 2, y_pred[:, :, :, 2] + y_pred[:, :, :, 4] / 2], axis=-1)
     iou_loss = iou(tmp_1, tmp_2)
 
     zeros = tf.zeros_like(iou_loss)
@@ -74,14 +78,11 @@ def to_yolo_format(label):
     box_size = 1 / 32
 
     for coords in label:
-        p_1 = np.array([coords[0], coords[1]])
-        p_2 = np.array([coords[0] + coords[2], coords[1] + coords[3]])
+        p_1 = np.array([coords[0] - coords[2] / 2, coords[1] - coords[3] / 2])
+        p_2 = np.array([coords[0] + coords[2] / 2, coords[1] + coords[3] / 2])
 
         center = np.mean([p_1, p_2], axis=0)
         center = (center / box_size).astype(np.int32)
-
-        center[0] = min(center[0], 32 - 1)
-        center[1] = min(center[1], 32 - 1)
 
         tmp = np.concatenate(([1], coords))
         new_label[center[0], center[1]] = tmp
@@ -92,7 +93,7 @@ def to_yolo_format(label):
 def read_data(batch_num, n_batches):
     id_list = sorted([x[:-4] for x in glob.glob('new_dataset/*.png')])
 
-    id_list = id_list[:200]
+    id_list = id_list[:]
 
     batch_size = len(id_list) // n_batches
     if (batch_num + 1) * batch_size > len(id_list):

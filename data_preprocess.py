@@ -33,7 +33,10 @@ def main():
                 mask = cv2.resize(mask, (256, 256))
 
                 points = cv2.findNonZero(mask)
-                rect = cv2.boundingRect(points)
+                rect = list(cv2.boundingRect(points))
+
+                rect[0] += rect[2] / 2
+                rect[1] += rect[3] / 2
 
                 s = [str(x) for x in rect]
                 s_txt = '\n' + s[0] + ',' + s[1] + ',' + s[2] + ',' + s[3]
